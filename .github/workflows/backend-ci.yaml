@@ -2,7 +2,7 @@ name: Backend Continuous Integration
 
 on:
   workflow_dispatch:  # Allow manual triggering
-  push:
+  # push:
   #   branches:
   #     - main
   #   paths:

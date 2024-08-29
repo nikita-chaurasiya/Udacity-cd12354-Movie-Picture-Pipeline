@@ -7,23 +7,21 @@ on:
   #   paths:
   #     - 'starter/frontend/**'
   workflow_dispatch:  # Allow manual triggering
-  pull_request:
-    types: [closed]
+  # pull_request:
     branches:
       - main
 
 jobs:
-  Linting:
-    if: github.event.pull_request.merged == true
+  Lint_Job:
     runs-on: ubuntu-latest
     environment: Devlopmnet Environment
 
     steps:
     - name: Check the Repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Use Node.js 18
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
       with:
         node-version: 18
         cache: 'npm'
@@ -34,10 +32,10 @@ jobs:
       run: npm ci
 
     - name: Checkout Run Lint
-      run: cd starter/frontend && npm run lint
+      working-directory: starter/frontend
+      run: npm run lint
 
-  Test:
-    if: github.event.pull_request.merged == true
+  Test_Job:
     runs-on: ubuntu-latest
 
     steps:
@@ -56,14 +54,14 @@ jobs:
       run: npm ci
   
     - name: Test
-      run: cd starter/frontend && npm run test
+      working-directory: starter/frontend
+      run: npm run test
 
 
 
   Build:
-    needs: [Linting, Test]
+    needs: [Lint_job, Test_Job]
     runs-on: ubuntu-latest
-    environment: Devlopmnet Environment
     steps:
     - name: Check the Repository
       uses: actions/checkout@v3
@@ -95,9 +93,9 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://a040382e88a9e4af9a01e246f3a9b18e-90642243.us-east-1.elb.amazonaws.com --tag 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-        docker push 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-    
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://a040382e88a9e4af9a01e246f3a9b18e-90642243.us-east-1.elb.amazonaws.com --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+      # docker push 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+        docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
     - name: Configure Kubeconfig
       run:
@@ -110,5 +108,5 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-          kustomize edit set image frontend=013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+          kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
           kustomize build | kubectl apply -f -
