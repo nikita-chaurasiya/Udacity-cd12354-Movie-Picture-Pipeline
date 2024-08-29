@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  Lint:
+  lint:
     name: Lint Codebase
     runs-on: ubuntu-latest
 
