@@ -1,13 +1,13 @@
 name: Frontend Continuous Integration
 
 on:
-  # push:
+  workflow_dispatch:  # Allow manual triggering
+  push:
   #   branches:
   #     - main
   #   paths:
   #     - 'starter/frontend/**'
-  workflow_dispatch:  # Allow manual triggering
-  pull_request:
+  # pull_request:
     branches:
       - main
 
@@ -83,6 +83,7 @@ jobs:
 
 
     - name: Build and Run Docker Image
+      working-directory: starter/backend
       run: |
         cd starter/frontend
         docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=mp-frontend:latest .
