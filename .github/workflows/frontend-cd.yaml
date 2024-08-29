@@ -57,9 +57,7 @@ jobs:
       working-directory: starter/frontend
       run: npm run test
 
-
-
-  Build:
+  Build_Job:
     needs: [Lint_job, Test_Job]
     runs-on: ubuntu-latest
     steps:
@@ -85,16 +83,13 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
-
-
     - name: Build and Push Docker Image
       working-directory: starter/frontend
       env:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://a040382e88a9e4af9a01e246f3a9b18e-90642243.us-east-1.elb.amazonaws.com --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-        docker push 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
         docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
 
     - name: Configure Kubeconfig
