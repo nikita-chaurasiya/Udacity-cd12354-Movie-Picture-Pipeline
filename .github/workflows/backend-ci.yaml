@@ -33,7 +33,8 @@ jobs:
         pip install flake8
 
     - name: Checkout Run Lint
-      run: cd starter/backend && pipenv run lint
+      working-directory: starter/backend
+      run: pipenv run lint
 
   TEST_JOB:
     runs-on: ubuntu-latest
