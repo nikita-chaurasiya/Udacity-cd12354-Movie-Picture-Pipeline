@@ -27,10 +27,13 @@ jobs:
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
 
-    - name: Install Dependencies and Checkout Run Lint
+    - name: Install Dependencies
       working-directory: starter/frontend
       run: npm install 
-      run: npm run lint
+
+    - name: Checkout Run Lint
+      working-directory: starter/frontend
+      run: npm run lint  
 
   Test_Job:
     runs-on: ubuntu-latest
@@ -45,9 +48,13 @@ jobs:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-    - name: Install Dependencies and  tests 
+
+    - name: Install Dependencies 
       working-directory: starter/frontend
       run: npm install 
+    
+    - name: TEST JOB
+      working-directory: starter/frontend
       run: npm run test
       
   Build_Job:
@@ -66,12 +73,13 @@ jobs:
         cache-dependency-path: starter/frontend/package-lock.json
     
     - name: Install dependencies
-      run: npm install
       working-directory: starter/frontend
+      run: npm install
 
     - name: TEST JOB
-      run: npm run test
       working-directory: starter/frontend
+      run: npm run test
+
 
     - name: Build and Run Docker Image
       run: |
