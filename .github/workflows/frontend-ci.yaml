@@ -12,7 +12,7 @@ on:
       - main
 
 jobs:
-  Lint:
+  Lint_Job:
     runs-on: ubuntu-latest
     environment: Devlopmnet Environment
 
@@ -27,15 +27,12 @@ jobs:
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
 
-    - name: Install Dependencies
+    - name: Install Dependencies and Checkout Run Lint
       working-directory: starter/frontend
       run: npm install 
-
-    - name: Checkout Run Lint
-      working-directory: starter/frontend
       run: npm run lint
 
-  Test:
+  Test_Job:
     runs-on: ubuntu-latest
 
     steps:
@@ -48,15 +45,13 @@ jobs:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-    - name: Install Dependencies
+    - name: Install Dependencies and  tests 
       working-directory: starter/frontend
       run: npm install 
-  
-    - name: Test
-      run: cd starter/frontend && npm run test
+      run: npm run test
       
-  Build:
-    needs: [Lint, Test]
+  Build_Job:
+    needs: [Lint_Job, Test_Job]
     runs-on: ubuntu-latest
     
     steps:
@@ -69,6 +64,14 @@ jobs:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
+    
+    - name: Install dependencies
+      run: npm install
+      working-directory: starter/frontend
+
+    - name: TEST JOB
+      run: npm run test
+      working-directory: starter/frontend
 
     - name: Build and Run Docker Image
       run: |
