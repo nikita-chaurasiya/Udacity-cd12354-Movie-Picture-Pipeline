@@ -1,27 +1,29 @@
 name: Frontend Continuous Deployment
 
 on:
-  workflow_dispatch:  # Allow manual triggering
-  push:
+  # push:
   #   branches:
   #     - main
   #   paths:
   #     - 'starter/frontend/**'
-  # pull_request:
+  workflow_dispatch:  # Allow manual triggering
+  pull_request:
+    types: [closed]
     branches:
       - main
 
 jobs:
-  Lint_Job:
+  Linting:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     environment: Devlopmnet Environment
 
     steps:
     - name: Check the Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Use Node.js 18
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
@@ -29,45 +31,45 @@ jobs:
 
     - name: Install Dependencies
       working-directory: starter/frontend
-      run: npm install 
+      run: npm ci
 
-    - name: checkout the lint
-      working-directory: starter/frontend
-      run: npm run lint
-         
+    - name: Checkout Run Lint
+      run: cd starter/frontend && npm run lint
 
-  Test_Job:
+  Test:
+    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
     - name: Check the Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
     - name: Use Node.js 18
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-
+        
     - name: Install Dependencies
       working-directory: starter/frontend
-      run: npm install 
-    
-    - name: checkout the tests
-      working-directory: starter/frontend
-      run: npm run test
-      
-  Build_Job:
-    needs: [Lint_Job, Test_Job]
+      run: npm ci
+  
+    - name: Test
+      run: cd starter/frontend && npm run test
+
+
+
+  Build:
+    needs: [Linting, Test]
     runs-on: ubuntu-latest
-    
+    environment: Devlopmnet Environment
     steps:
     - name: Check the Repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
     
     - name: Use Node.js 18
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
@@ -79,10 +81,13 @@ jobs:
         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         aws-region: us-east-1
+  
 
     - name: Login to Amazon 
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
+
+
 
     - name: Build and Push Docker Image
       working-directory: starter/frontend
@@ -90,9 +95,8 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-    # docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
-        docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://a040382e88a9e4af9a01e246f3a9b18e-90642243.us-east-1.elb.amazonaws.com --tag 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+        docker push 013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
     
 
     - name: Configure Kubeconfig
@@ -106,5 +110,5 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-          kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
+          kustomize edit set image frontend=013138012705.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
           kustomize build | kubectl apply -f -
