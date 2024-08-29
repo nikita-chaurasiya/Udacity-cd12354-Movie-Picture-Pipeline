@@ -1,67 +1,74 @@
 name: Frontend Continuous Integration
 
 on:
-  workflow_dispatch:
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - 'starter/frontend/**'
+  workflow_dispatch:  # Allow manual triggering
   pull_request:
     branches:
       - main
 
 jobs:
-  lint:
+  Linting:
     runs-on: ubuntu-latest
+    environment: Devlopmnet Environment
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Check the Repository
+      uses: actions/checkout@v3
 
-    - name: Set up Node.js 
+    - name: Use Node.js 18
       uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-    
-    - name: Install dependencies and run lint 
-        working-directory: starter/frontend
-        run: npm install
-        run: npm run lint
-    
+
+    - name: Install Dependencies
+      working-directory: starter/frontend
+      run: npm install 
+
+    - name: Checkout Run Lint
+      run: cd starter/frontend && npm run lint
+
   Test:
-    name: Run Test Suite
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Check the Repository
+      uses: actions/checkout@v3
 
-    - name: Set up Node.js 
+    - name: Use Node.js 18
       uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-    
-    - name: Install dependencies  and test 
-        working-directory: starter/frontend
-        run: npm install
-        run: npm run test
-
+    - name: Install Dependencies
+      working-directory: starter/frontend
+      run: npm install 
+  
+    - name: Test
+      run: cd starter/frontend && npm run test
+      
   Build:
-    name: Build Docker Image
-    needs: [Lint, Test]
+    needs: [Linting, Test]
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-    - name: Set up Node.js 
+    - name: Check the Repository
+      uses: actions/checkout@v3
+    
+    - name: Use Node.js 18
       uses: actions/setup-node@v3
       with:
         node-version: 18
         cache: 'npm'
         cache-dependency-path: starter/frontend/package-lock.json
-        
+
     - name: Build and Run Docker Image
       run: |
         cd starter/frontend
