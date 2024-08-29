@@ -36,7 +36,6 @@ jobs:
       run: cd starter/backend && pipenv run lint
 
   TEST_JOB:
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     steps:
