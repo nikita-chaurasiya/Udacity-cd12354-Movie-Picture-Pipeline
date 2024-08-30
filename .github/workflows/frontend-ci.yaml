@@ -86,5 +86,4 @@ jobs:
       working-directory: starter/backend
       run: |
         docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag=frontend:latest .
-        docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
         docker run --name frontend -p 3000:3000 -d frontend
