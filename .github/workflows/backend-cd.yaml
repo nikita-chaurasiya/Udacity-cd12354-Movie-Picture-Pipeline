@@ -1,20 +1,15 @@
 name: Backend Continuous Deployment
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'starter/frontend/**'
   workflow_dispatch:  # Allow manual triggering
-  #pull_request:
-  #  types: [closed]
+  pull_request:
     branches:
       - main
 
 jobs:
   LINT_JOB:
     runs-on: ubuntu-latest
+    environment: staging
 
     steps:
     - name: Check the Repository
@@ -83,8 +78,8 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: backend
       run: |
-        docker build -t backend:latest .
-        docker tag backend:latest 533267082175.dkr.ecr.us-east-1.amazonaws.com/backend:latest
+        docker build -t backend:${IMAGE_TAG} .
+        docker tag backend:${IMAGE_TAG} 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
         docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
 
     - name: Update Kubeconfig
@@ -97,6 +92,10 @@ jobs:
         IMAGE_TAG: latest
         REPO_NAME: backend
       run: |
-        aws eks update-kubeconfig --name cluster --region us-east-1
-        kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
+        kustomize edit set image backend=533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
         kustomize build | kubectl apply -f -
+
+    - name: Display application URL   
+      working-directory: starter/backend/k8s
+      run: |
+        kubectl get svc -A    

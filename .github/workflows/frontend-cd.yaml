@@ -1,20 +1,15 @@
 name: Frontend Continuous Deployment
 
 on:
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'starter/frontend/**'
   workflow_dispatch:  # Allow manual triggering
-  # pull_request:
+  pull_request:
     branches:
       - main
 
 jobs:
   Lint_Job:
     runs-on: ubuntu-latest
-    environment: Devlopmnet Environment
+    environment: staging
 
     steps:
     - name: Check the Repository
@@ -83,14 +78,28 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v2
 
+    - name: Configure kubectl
+      run: |
+        aws eks update-kubeconfig --name cluster --region us-east-1
+
+    - name: Display application URLs
+      id: get_be_service_url
+      run: |
+        cd starter/frontend/k8s
+        kubectl get svc -A
+        BE_SERVICE_URL=$(kubectl get svc backend -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          echo "BE_SERVICE_URL=${BE_SERVICE_URL}"
+          echo "::set-output name=be_service_url::${BE_SERVICE_URL}"
+
     - name: Build and Push Docker Image
       working-directory: starter/frontend
       env:
         IMAGE_TAG: latest
         REPO_NAME: frontend
       run: |
-        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://localhost:5000 --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
-        docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:latest
+        echo "Using BE_SERVICE_URL=${{ steps.get_be_service_url.outputs.be_service_url }}"
+        docker build --build-arg=REACT_APP_MOVIE_API_URL=http://${{ steps.get_be_service_url.outputs.be_service_url }} --tag 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG .
+        docker push 533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
 
     - name: Configure Kubeconfig
       run:
@@ -105,3 +114,8 @@ jobs:
       run: |
           kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/$REPO_NAME:$IMAGE_TAG
           kustomize build | kubectl apply -f -
+
+    - name: Display application URLs       
+      run: |
+        cd starter/frontend/k8s
+        kubectl get svc -A
