@@ -2,7 +2,7 @@ name: Backend Continuous Deployment
 
 on:
   workflow_dispatch:  # Allow manual triggering
-  pull_request:
+  push:
     branches:
       - main
 
