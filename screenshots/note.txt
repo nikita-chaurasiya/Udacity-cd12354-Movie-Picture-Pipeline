@@ -1,1 +1,27 @@
 
+To give you a brief overview, there are 2 components in this project
+
+Frontend - A react application that fetches the list of movies from Backend and displays it.
+
+Backend - A flask/python application which returns a list of movies.
+
+Now, when you run both the components on same machine (let's say your laptop), they can discover each other using the localhost network (as frontend runs on localhost:3000 while backend runs on localhost:5000)
+
+When you deploy it withing containers as EKS pods, the localhost discovery doesn't work, as Frontend has it's own network and Backend has it's own network. So, frontend needs a way to know where the Backend is running (to fetch the list of movies).
+Therefore, we create Kuberenetes services which generates a publicly accessible LoadBalancer for each components. This way frontend can fetch the list of movies using the http://Backend_LB_URL/movies
+The value of REACT_APP_MOVIE_API_URL environment variable in the Frontend application, tells the application where to look for backend.
+From your attached image, we see that Frontend is looking from list of movies at localhost:5000/movies. This won't work for the reason mentioned above
+
+
+SOLUTION
+
+While building the Frontend image in Frontend CD, the value of REACT_APP_MOVIE_API_URL should be set to the Backend Service Load Balancer URL (which you see by running kubectl get svc command)
+Also, please use a tag other than latest for the image or else you might come across issue discussed on this Knowledge Post
+If you still want to keep the tag at latest, then you need to ensure that you rollout a new deployment, so that new pods are created which pickup the latest changes in your application. For this, you can add the following command after this line : kubectl rollout restart deploy frontend
+********************************************************************
+
+Hope that helps. Feel free to reach out via comment if you have further questions.
+
+PS : As the issue is resolved, I'd request you to please mark this answer as Accepted. This would :
+1. Close this thread so that it isn't assigned to any other mentor.
+2. Help the student search for the correct solution on Knowledge, if anyone has similar doubt.
