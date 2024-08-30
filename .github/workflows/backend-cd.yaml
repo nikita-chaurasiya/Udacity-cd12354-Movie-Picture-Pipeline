@@ -98,5 +98,5 @@ jobs:
         REPO_NAME: backend
       run: |
         aws eks update-kubeconfig --name cluster --region us-east-1
-        kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/frontend:$IMAGE_TAG
+        kustomize edit set image frontend=533267082175.dkr.ecr.us-east-1.amazonaws.com/backend:$IMAGE_TAG
         kustomize build | kubectl apply -f -
