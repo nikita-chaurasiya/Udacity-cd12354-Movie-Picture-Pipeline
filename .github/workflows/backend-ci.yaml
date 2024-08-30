@@ -2,19 +2,14 @@ name: Backend Continuous Integration
 
 on:
   workflow_dispatch:  # Allow manual triggering
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - 'starter/frontend/**'
- # pull_request:
+  pull_request:
     branches:
       - main
 
 jobs:
   LINT_JOB:
     runs-on: ubuntu-latest
-    environment: Devlopmnet Environment
+    environment: staging
 
     steps:
     - name: Check the Repository
@@ -71,4 +66,4 @@ jobs:
     - name: Build Docker Image
       working-directory: starter/backend
       run: |
-        docker build --tag backend:latest .
+        docker build --tag mp-backend:latest .
